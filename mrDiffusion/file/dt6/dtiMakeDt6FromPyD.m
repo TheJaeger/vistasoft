@@ -81,7 +81,7 @@ if(~isempty(t1FileName))
     % fix.
     % - dla and rfd
 
-    [t1.data,t1.pixdim,hdr] = analyzeRead(t1FileName);
+    [t1.data,t1.pixdim,hdr] = loadAnalyze(t1FileName);
     origin = -hdr.mat(1:3,4);
     t1.qto_ijk = [diag(t1.pixdim),origin+0.5;[0 0 0 1]];
     t1.qto_xyz = inv(t1.qto_ijk);
