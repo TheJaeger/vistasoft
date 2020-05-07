@@ -71,7 +71,7 @@ if ~exist('t1FileName','var')
         disp(t1FileName);
     end
 end
-if(~isempty(t1FileName))
+if(isfile(t1FileName))
   if(strcmpi(t1FileName(end-1:end),'gz'))
     t1 = niftiRead(t1FileName);
   else
@@ -81,7 +81,7 @@ if(~isempty(t1FileName))
     % fix.
     % - dla and rfd
 
-    [t1.data,t1.pixdim,hdr] = loadAnalyze(t1FileName);
+    [t1.data,t1.pixdim,hdr] = dtiGetT1Info(t1FileName);
     origin = -hdr.mat(1:3,4);
     t1.qto_ijk = [diag(t1.pixdim),origin+0.5;[0 0 0 1]];
     t1.qto_xyz = inv(t1.qto_ijk);
@@ -103,7 +103,9 @@ end
 
 [datapath,basename] = fileparts(b0FileName);
 us = strfind(basename,'_');
-basename = basename(1:us(end));
+if ~isempty(us)
+    basename = basename(1:us(end));
+end
 
 if(~exist('outPathName','var') | isempty(outPathName))
     outPathName = fullfile(datapath, [basename 'dt6.mat']);
@@ -257,6 +259,24 @@ end
 if(nargout==0)
     clear dt6;
 end
-return;
 
+function [img, mmPerVox, hdr] = dtiGetT1Info(file)
+%
+% Gets basic T1 file information get the function dtiMakeDt6FromPyD needs
 
+if isempty(file) | ~exist(file)
+    error('Invalid input file');
+end
+
+d = niftiinfo(file);
+img = niftiread(d);
+mmPerVox = d.PixelDimensions(1:3);
+hdr.fname = d.Filename;
+hdr.dim = d.ImageSize;
+hdr.vox = mmPerVox(1:3);
+hdr.mat = d.Transform.T';
+hdr.descrip = d.raw.descrip;
+hdr.origin = -hdr.mat(1:3,4);
+end
+
+end
